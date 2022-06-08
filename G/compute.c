@@ -25,6 +25,26 @@ void make_lowercase(char *s) {
 }
 
 
+int generate_pipe(char* pipe_name){
+    //delete existing pipe
+    unlink(pipe_name);
+    //create pipe
+  if(mkfifo(pipe_name, 0666)) {
+        perror(pipe_name);
+        return 1;
+    }
+
+// open pipe
+    printf("try to open pipe: %s\n",pipe_name);
+    int fd = open(pipe_name, O_WRONLY );
+    if(fd == -1) {
+        perror(pipe_name);
+        return 1;
+    }
+return fd;
+}
+
+
 int main(int argc, char** argv)
 {
     char line[MAX_MSG_LEN];
@@ -36,11 +56,25 @@ int main(int argc, char** argv)
     //delete existing pipe
     unlink(PIPE_NAME);
     //create pipe
-    if(mkfifo(PIPE_NAME, 0666)) {
+/*    if(mkfifo(PIPE_NAME, 0666)) {
         perror(PIPE_NAME);
         mq_close(mq);
         return 1;
-    }
+    }*/
+    
+int fd_upper;
+if((fd_upper = generate_pipe(PIPE_NAME_UPPER)) == 1){
+        mq_close(mq);
+        return 1;
+}
+int fd_lower;
+if((fd_lower = generate_pipe(PIPE_NAME_LOWER)) == 1){
+        mq_close(mq);
+        free(fd_upper);
+        return 1;
+}
+
+
 
     printf("try to open pipe: %s\n",PIPE_NAME);
     int fd = open (PIPE_NAME, O_WRONLY );
@@ -60,27 +94,53 @@ int main(int argc, char** argv)
         int length = strlen(line);
         printf("received len: %d, prio: %d, msg received: '%s' \n", length, prio, line);
 
-        make_uppercase(line);
-        printf("converted to uppercase: %s\n", line);
+        char upper[MAX_MSG_LEN];
+        char lower[MAX_MSG_LEN];
+        strncpy(upper, line, MAX_MSG_LEN);
+        strncpy(lower, line, MAX_MSG_LEN);
+        
 
-        unsigned char lengthHeader = strlen(line);
+        make_uppercase(upper);
+        make_lowercase(lower);
+        
+        printf("converted to uppercase: %s\n", upper);
+                printf("converted to lowercase: %s\n", lower);
+
+
+        unsigned char lengthHeader = strlen(lower);
         if(lengthHeader >= MAX_MSG_LEN) {
             lengthHeader = MAX_MSG_LEN - 1;
             line[lengthHeader] = 0;
         }
-
         if( write(fd, &lengthHeader, 1) != 1) {
             fprintf(stderr, "Can't write length header");
             close(fd);
             return 1;
         }
-
-        int rv = write(fd, &line, strlen(line));
+        int rv = write(fd, &lower, strlen(lower));
         if(rv == -1) {
             perror(PIPE_NAME);
             close(fd);
             return 1;
         }
+        
+        lengthHeader = strlen(upper);
+        if(lengthHeader >= MAX_MSG_LEN) {
+            lengthHeader = MAX_MSG_LEN - 1;
+            upper[lengthHeader] = 0;
+        }
+        if( write(fd, &lengthHeader, 1) != 1) {
+            fprintf(stderr, "Can't write length header");
+            close(fd);
+            return 1;
+        }
+         rv = write(fd, &upper, strlen(upper));
+        if(rv == -1) {
+            perror(PIPE_NAME);
+            close(fd);
+            return 1;
+        }       
+        
     }
 
     if(rv == -1) {
