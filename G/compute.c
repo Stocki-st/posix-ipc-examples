@@ -44,7 +44,7 @@ int generate_pipe(char* pipe_name) {
     return fd;
 }
 // Todo if time: extract writing into function
-//int write_to_pipe(int fd, char* msg) 
+//int write_to_pipe(int fd, char* msg)
 
 int main(int argc, char** argv)
 {

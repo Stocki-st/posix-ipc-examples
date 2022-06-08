@@ -13,12 +13,12 @@ int main(int argc, char** argv)
         fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'");
         return 1;
     }
-    // how to make this sane?
-    char* pipe_name = PIPE_NAME_UPPER;
+
+    char pipe_name[40] = {'\0'};// maximum pipe-name size 40
     if(strcmp(argv[1],"lower") == 0) {
-           pipe_name =  PIPE_NAME_UPPER;
+        strncpy ( pipe_name, PIPE_NAME_LOWER, sizeof(pipe_name));
     }  else if(strcmp(argv[1],"upper") == 0) {
-             pipe_name =  PIPE_NAME_LOWER;
+        strncpy ( pipe_name, PIPE_NAME_UPPER, sizeof(pipe_name));
     } else {
         fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'");
         return 1;
