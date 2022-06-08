@@ -9,12 +9,29 @@
 
 int main(int argc, char** argv)
 {
+    if(argc<2) {
+        fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'");
+        return 1;
+    }
+    // how to make this sane?
+ char* pipe_name;
+    if(strcmp(argv[1],"lower") == 0) {
+        pipe_name =  PIPE_NAME_UPPER;
+    }  else if(strcmp(argv[1],"upper") == 0) {
+         pipe_name =  PIPE_NAME_LOWER;
+    } else {
+        fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'");
+        return 1;
+    }
+
+    printf("pipe name: %s", pipe_name);
+
     char line[MAX_MSG_LEN];
-    printf("try to open pipe: %s", PIPE_NAME);
-    int fd = open (PIPE_NAME, O_RDONLY);
+    printf("try to open pipe: %s", pipe_name);
+    int fd = open (pipe_name, O_RDONLY);
 
     if(fd == -1) {
-        perror(PIPE_NAME);
+        perror(pipe_name);
         return 1;
     }
     ssize_t rv = 0;
@@ -36,7 +53,7 @@ int main(int argc, char** argv)
     }
 
     if(rv == -1) {
-        perror(PIPE_NAME);
+        perror(pipe_name);
         close(fd);
         return 1;
     }

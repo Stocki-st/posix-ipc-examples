@@ -10,6 +10,7 @@
 
 #include "share.h"
 
+#define PIPE_NAME PIPE_NAME_UPPER
 ///TODO: check if null terminated/max size
 void make_uppercase(char *s) {
     for(int i = 0; s[i] != '\0'; i++) {
