@@ -10,7 +10,7 @@ display: display.c share.h
 	gcc -Wall -o display display.c -lrt
 
 clean:
-	rm -f menu display compute is211818.pipe
+	rm -f menu display compute is211818_*.pipe
 
 format:
 	astyle *.c *.h

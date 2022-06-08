@@ -21,21 +21,21 @@ int main(int argc, char** argv)
     unsigned char length = 0;
 
     while ((rv = read(fd,&length, 1)) == 1) {
-    rv = read(fd,line, length);
+        rv = read(fd,line, length);
         if(rv == -1) {
             break;
         }
         if(rv != (ssize_t) length) {
-            fprintf(stderr, "Can't read full message, rv: %d", rv);
+            fprintf(stderr, "Can't read full message, rv: %ld", rv);
             close(fd);
             return 1;
         }
         line[rv] = '\0';
-        printf("len: %d, msg: '%s'\n", rv, line);
+        printf("len: %ld, msg: '%s'\n", rv, line);
     }
 
     if(rv == -1) {
-    perror(filename);
+        perror(filename);
         close(fd);
         return 1;
     }

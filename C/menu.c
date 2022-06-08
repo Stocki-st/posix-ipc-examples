@@ -35,9 +35,9 @@ int main(int argc, char** argv)
         }
 
         if(strcmp(line,"quit") == 0) {
-           char x = 0;
-           mq_send(mq,&x,strlen(&x),MY_SHUTDOWN_PRIO);
-           break;
+            char x = 0;
+            mq_send(mq,&x,strlen(&x),MY_SHUTDOWN_PRIO);
+            break;
         }
 
         if(strcmp(line,"sleep") == 0) {

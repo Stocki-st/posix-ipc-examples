@@ -11,19 +11,21 @@
 
 #include "share.h"
 
-#define PIPE_NAME PIPE_NAME_UPPER
-///TODO: check if null terminated/max size
+
+//converts a null-terminated char* to uppercase
 void make_uppercase(char *s) {
     for(int i = 0; s[i] != '\0'; i++) {
         s[i] = toupper((unsigned char)s[i]);
     }
 }
 
+//converts a null-terminated char* to lowercase
 void make_lowercase(char *s) {
     for(int i = 0; s[i] != '\0'; i++) {
         s[i] = tolower((unsigned char)s[i]);
     }
 }
+
 
 int generate_pipe(char* pipe_name) {
     //delete existing pipe
@@ -36,7 +38,7 @@ int generate_pipe(char* pipe_name) {
 
     // open pipe
     printf("try to open pipe: %s\n",pipe_name);
-    int fd = open(pipe_name, O_WRONLY );
+    int fd = open(pipe_name, O_WRONLY);
     if(fd == -1) {
         perror(pipe_name);
         return 1;
@@ -49,17 +51,22 @@ int generate_pipe(char* pipe_name) {
 int main(int argc, char** argv)
 {
     char line[MAX_MSG_LEN];
+
+    // open message queue
     int mq = mq_open (DEFAULT_NAME,  O_RDONLY);
     if(mq == -1) {
         perror(DEFAULT_NAME);
         return 1;
     }
 
+    //get named pipe for upper case
     int fd_upper;
     if((fd_upper = generate_pipe(PIPE_NAME_UPPER)) == 1) {
         mq_close(mq);
         return 1;
     }
+
+    //get named pipe for lower case
     int fd_lower;
     if((fd_lower = generate_pipe(PIPE_NAME_LOWER)) == 1) {
         mq_close(mq);
@@ -67,9 +74,10 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
     ssize_t rv = 0;
     unsigned int prio = 0;
+
+    // read from message queue
     while((rv = mq_receive(mq, line, MAX_MSG_LEN, &prio)) != -1) {
         if(prio == MY_SHUTDOWN_PRIO) {
             break;
@@ -83,13 +91,14 @@ int main(int argc, char** argv)
         strncpy(upper, line, MAX_MSG_LEN);
         strncpy(lower, line, MAX_MSG_LEN);
 
-
         make_uppercase(upper);
         make_lowercase(lower);
 
         printf("converted to uppercase: %s\n", upper);
         printf("converted to lowercase: %s\n", lower);
 
+
+        // write into uppercase pipe
         unsigned char lengthHeader = strlen(upper);
         if(lengthHeader >= MAX_MSG_LEN) {
             lengthHeader = MAX_MSG_LEN - 1;
@@ -111,7 +120,7 @@ int main(int argc, char** argv)
             return 1;
         }
 
-
+        // write into lowercase pipe
         lengthHeader = strlen(lower);
         if(lengthHeader >= MAX_MSG_LEN) {
             lengthHeader = MAX_MSG_LEN - 1;
@@ -143,9 +152,15 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    printf("done...\n");
+    // close ressources
     mq_close(mq);
     close(fd_lower);
     close(fd_upper);
+
+    //remove pipes
+    unlink(PIPE_NAME_LOWER);
+    unlink(PIPE_NAME_UPPER);
+
+    printf("done...\n");
     return 0;
 }

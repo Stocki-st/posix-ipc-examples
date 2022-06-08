@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     char line[MAX_MSG_LEN];
     mq_unlink(DEFAULT_NAME);
     struct mq_attr attr = {0,MAX_MSG_COUNT, MAX_MSG_LEN,0};
+    //open or create write only queue
     mqd_t mq = mq_open(DEFAULT_NAME,O_CREAT | O_WRONLY, 0666, &attr);
     if(mq == -1) {
         perror(DEFAULT_NAME);
@@ -36,6 +37,7 @@ int main(int argc, char** argv)
 
         if(strcmp(line,"quit") == 0) {
             char x = 0;
+            //send shutdown cmd
             mq_send(mq,&x,strlen(&x),MY_SHUTDOWN_PRIO);
             break;
         }
@@ -49,6 +51,8 @@ int main(int argc, char** argv)
             len = MAX_MSG_LEN - 1;
             line[len] = 0;
         }
+
+        // put the msg into the queue
         if(mq_send(mq, line, len, MY_FLUFFY_DEFAULT_PRIO) == -1) {
             perror(DEFAULT_NAME);
             mq_close(mq);
@@ -58,5 +62,9 @@ int main(int argc, char** argv)
 
     printf("done...\n");
     mq_close(mq);
+
+    // clean up mq
+    sleep(1);
+    mq_unlink(DEFAULT_NAME);
     return 0;
 }

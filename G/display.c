@@ -10,7 +10,7 @@
 int main(int argc, char** argv)
 {
     if(argc<2) {
-        fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'");
+        fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'\n");
         return 1;
     }
 
@@ -20,14 +20,12 @@ int main(int argc, char** argv)
     }  else if(strcmp(argv[1],"upper") == 0) {
         strncpy ( pipe_name, PIPE_NAME_UPPER, sizeof(pipe_name));
     } else {
-        fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'");
+        fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'\n");
         return 1;
     }
 
-    printf("pipe name: %s", pipe_name);
-
     char line[MAX_MSG_LEN];
-    printf("try to open pipe: %s", pipe_name);
+    printf("try to open pipe: %s\n", pipe_name);
     int fd = open (pipe_name, O_RDONLY);
 
     if(fd == -1) {
@@ -37,6 +35,7 @@ int main(int argc, char** argv)
     ssize_t rv = 0;
     unsigned char length = 0;
 
+    printf("pipe '%s' opened... waiting for messages...\n", pipe_name);
     while ((rv = read(fd,&length, 1)) == 1) {
         rv = read(fd,&line, length);
 

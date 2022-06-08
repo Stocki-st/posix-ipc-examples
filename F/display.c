@@ -19,7 +19,7 @@ int main(int argc, char** argv)
     }
     ssize_t rv = 0;
     unsigned char length = 0;
-
+    printf("pipe '%s' opened... waiting for messages...\n", PIPE_NAME);
     while ((rv = read(fd,&length, 1)) == 1) {
         rv = read(fd,&line, length);
 

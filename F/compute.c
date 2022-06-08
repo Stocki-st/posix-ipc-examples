@@ -10,7 +10,7 @@
 
 #include "share.h"
 
-///TODO: check if null terminated/max size
+///TODO if time: check if null terminated/max size
 void make_uppercase(char *s) {
     for(int i = 0; s[i] != '\0'; i++) {
         s[i] = toupper((unsigned char)s[i]);
@@ -92,5 +92,8 @@ int main(int argc, char** argv)
     printf("done...\n");
     mq_close(mq);
     close(fd);
+
+    //remove pipes
+    unlink(PIPE_NAME);
     return 0;
 }
