@@ -14,11 +14,11 @@ int main(int argc, char** argv)
         return 1;
     }
     // how to make this sane?
- char* pipe_name;
+    char* pipe_name = PIPE_NAME_UPPER;
     if(strcmp(argv[1],"lower") == 0) {
-        pipe_name =  PIPE_NAME_UPPER;
+           pipe_name =  PIPE_NAME_UPPER;
     }  else if(strcmp(argv[1],"upper") == 0) {
-         pipe_name =  PIPE_NAME_LOWER;
+             pipe_name =  PIPE_NAME_LOWER;
     } else {
         fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'");
         return 1;
