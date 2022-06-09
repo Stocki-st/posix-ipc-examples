@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     if(ftruncate(fd, sizeof(struct shared_msg)) == -1) {
         perror(SHAREDMEM_NAME);
         close(fd);
-        ///TODO: delete fd
+        shm_unlink(SHAREDMEM_NAME);
         return 1;
     }
 
@@ -44,6 +44,7 @@ int main(int argc, char** argv)
             perror(SHAREDMEM_NAME);
         }
         close(fd);
+        shm_unlink(SHAREDMEM_NAME);
         return 1;
     }
 
@@ -55,7 +56,9 @@ int main(int argc, char** argv)
             perror(SHAREDMEM_NAME);
         }
         close(fd);
+        shm_unlink(SHAREDMEM_NAME);
         sem_close(sem_sync);
+        sem_unlink(SHM_SEM_SYNC);
         return 1;
     }
     
@@ -69,6 +72,9 @@ int main(int argc, char** argv)
         close(fd);
         sem_close(sem_sync);
         sem_close(sem_new_msg);
+        shm_unlink(SHAREDMEM_NAME);
+        sem_unlink(SHM_SEM_SYNC);
+        sem_unlink(SHM_SEM_NEW_MSG);
         return 1;
     }
 
@@ -78,8 +84,14 @@ int main(int argc, char** argv)
         if(munmap(shm,sizeof(struct shared_msg)) == -1) {
             perror(SHAREDMEM_NAME);
         }
-        sem_close(sem_sync);
         close(fd);
+        sem_close(sem_sync);
+        sem_close(sem_new_msg);
+        sem_close(sem_ready);
+        shm_unlink(SHAREDMEM_NAME);
+        sem_unlink(SHM_SEM_SYNC);
+        sem_unlink(SHM_SEM_NEW_MSG);
+        sem_unlink(SHM_SEM_READY);
         return 1;
     }
 
@@ -131,7 +143,10 @@ int main(int argc, char** argv)
     sem_close(sem_sync);
     sem_close(sem_ready);
     sem_close(sem_all_finished);
-
+    sem_unlink(SHM_SEM_SYNC);
+    sem_unlink(SHM_SEM_NEW_MSG);
+    sem_unlink(SHM_SEM_READY);
     close(fd);
+    shm_unlink(SHAREDMEM_NAME);
     return 0;
 }
