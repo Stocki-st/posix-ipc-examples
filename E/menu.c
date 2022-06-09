@@ -72,7 +72,16 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
+    sem_t* sem_all_finished = sem_open(SHM_SEM_ALL_FINISHED, O_RDWR| O_CREAT, 0666,0);
+    if( sem_all_finished == SEM_FAILED) {
+        perror(SHM_SEM_ALL_FINISHED);
+        if(munmap(shm,sizeof(struct shared_msg)) == -1) {
+            perror(SHAREDMEM_NAME);
+        }
+        sem_close(sem_sync);
+        close(fd);
+        return 1;
+    }
 
     while (printf("> "),fgets(line, MAX_MSG_LEN, stdin)) {
         int len = strlen(line);
@@ -102,6 +111,7 @@ int main(int argc, char** argv)
             //write into shared mem
             memcpy(shm->msg, line, MAX_MSG_LEN);
             shm->length = len+1;
+            shm->displays_ready = 0;
             sem_post(sem_sync);
         }
         // notify that new msg is ready to read
@@ -120,6 +130,7 @@ int main(int argc, char** argv)
     sem_close(sem_new_msg);
     sem_close(sem_sync);
     sem_close(sem_ready);
+    sem_close(sem_all_finished);
 
     close(fd);
     return 0;

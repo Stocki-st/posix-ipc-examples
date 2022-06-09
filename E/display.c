@@ -64,9 +64,25 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
-    unsigned char length = 0;
-
+    sem_t* sem_all_finished = sem_open(SHM_SEM_ALL_FINISHED, O_RDWR);
+    if( sem_all_finished == SEM_FAILED) {
+        perror(SHM_SEM_ALL_FINISHED);
+        if(munmap(shm,sizeof(struct shared_msg)) == -1) {
+            perror(SHAREDMEM_NAME);
+        }
+        sem_close(sem_sync);
+        close(fd);
+        return 1;
+    }
+    int id = 0;
+    //say hi --> increase num_of_displays
+    sem_wait(sem_sync);
+    id = ++shm->num_of_displays;
+    sem_post(sem_sync);
+    
+    printf("welcome to display number %d\n", id);
+    
+    int length = 0;
     while (1) {
         //wait for notification that new msg is available
         sem_wait(sem_new_msg);
@@ -78,18 +94,36 @@ int main(int argc, char** argv)
             //read from shared mem
             memcpy(line, shm->msg,MAX_MSG_LEN);
             length = shm->length;
+            ++shm->displays_ready;
+            if(shm->displays_ready >= shm->num_of_displays){
+                for (int i = 0; i < shm->num_of_displays; ++i){
+                    // notify all displays that reading for all is finished
+                    sem_post(sem_all_finished);
+                }
+                // notify menu that reading for all is finished
+                sem_post(sem_ready);
+            }else{
+                // notify next display to read
+                sem_post(sem_new_msg);
+            }
+            //leave critical section
             sem_post(sem_sync);
         }
-        // notify that reading is finished
-        sem_post(sem_ready);
 
+        //wait until all displays are ready
+        sem_wait(sem_all_finished);
 
         if(strcmp(line,"quit") == 0) {
             break;
         }
 
-        printf("msg: '%s' with length %d (null included)\n",  line, length);
+        printf("msg: '%s'\n",  line);
     }
+    
+    //say bye --> increase num_of_displays
+    sem_wait(sem_sync);
+    --shm->num_of_displays;
+    sem_post(sem_sync);
 
     printf("done...\n");
     munmap(shm, sizeof(struct shared_msg));

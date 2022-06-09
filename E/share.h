@@ -6,7 +6,7 @@
 #define SHM_SEM_SYNC "/is211818_sem_sync"
 #define SHM_SEM_NEW_MSG "/is211818_sem_new_msg"
 #define SHM_SEM_READY "/is211818_sem_ready"
-#define SHM_SEM_ALL_READY "/is211818_sem_all_ready"
+#define SHM_SEM_ALL_FINISHED "/is211818_sem_all_ready"
 
 
 struct shared_msg {
