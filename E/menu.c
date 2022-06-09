@@ -61,7 +61,7 @@ int main(int argc, char** argv)
         sem_unlink(SHM_SEM_SYNC);
         return 1;
     }
-    
+
     sem_unlink(SHM_SEM_READY);
     sem_t* sem_ready = sem_open(SHM_SEM_READY,O_RDWR | O_CREAT, 0666,1 /*init value = 0*/);
     if(sem_ready == SEM_FAILED) {
@@ -146,6 +146,7 @@ int main(int argc, char** argv)
     sem_unlink(SHM_SEM_SYNC);
     sem_unlink(SHM_SEM_NEW_MSG);
     sem_unlink(SHM_SEM_READY);
+    sem_unlink(SHM_SEM_ALL_FINISHED);
     close(fd);
     shm_unlink(SHAREDMEM_NAME);
     return 0;

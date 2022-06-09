@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     if(ftruncate(fd, sizeof(struct shared_msg)) == -1) {
         perror(SHAREDMEM_NAME);
         close(fd);
-        ///TODO: delete fd
+        shm_unlink(SHAREDMEM_NAME);
         return 1;
     }
 
@@ -38,6 +38,7 @@ int main(int argc, char** argv)
             perror(SHAREDMEM_NAME);
         }
         close(fd);
+        shm_unlink(SHAREDMEM_NAME);
         return 1;
     }
 
@@ -47,8 +48,10 @@ int main(int argc, char** argv)
         if(munmap(shm,sizeof(struct shared_msg)) == -1) {
             perror(SHAREDMEM_NAME);
         }
-        sem_close(sem_sync);
         close(fd);
+        shm_unlink(SHAREDMEM_NAME);
+        sem_close(sem_sync);
+        sem_unlink(SHM_SEM_SYNC);
         return 1;
     }
 
@@ -61,6 +64,9 @@ int main(int argc, char** argv)
         close(fd);
         sem_close(sem_sync);
         sem_close(sem_new_msg);
+        shm_unlink(SHAREDMEM_NAME);
+        sem_unlink(SHM_SEM_SYNC);
+        sem_unlink(SHM_SEM_NEW_MSG);
         return 1;
     }
 
@@ -70,8 +76,14 @@ int main(int argc, char** argv)
         if(munmap(shm,sizeof(struct shared_msg)) == -1) {
             perror(SHAREDMEM_NAME);
         }
-        sem_close(sem_sync);
         close(fd);
+        sem_close(sem_sync);
+        sem_close(sem_new_msg);
+        sem_close(sem_ready);
+        shm_unlink(SHAREDMEM_NAME);
+        sem_unlink(SHM_SEM_SYNC);
+        sem_unlink(SHM_SEM_NEW_MSG);
+        sem_unlink(SHM_SEM_READY);
         return 1;
     }
     int id = 0;
@@ -79,9 +91,9 @@ int main(int argc, char** argv)
     sem_wait(sem_sync);
     id = ++shm->num_of_displays;
     sem_post(sem_sync);
-    
+
     printf("welcome to display number %d\n", id);
-    
+
     int length = 0;
     while (1) {
         //wait for notification that new msg is available
@@ -95,14 +107,14 @@ int main(int argc, char** argv)
             memcpy(line, shm->msg,MAX_MSG_LEN);
             length = shm->length;
             ++shm->displays_ready;
-            if(shm->displays_ready >= shm->num_of_displays){
-                for (int i = 0; i < shm->num_of_displays; ++i){
+            if(shm->displays_ready >= shm->num_of_displays) {
+                for (int i = 0; i < shm->num_of_displays; ++i) {
                     // notify all displays that reading for all is finished
                     sem_post(sem_all_finished);
                 }
                 // notify menu that reading for all is finished
                 sem_post(sem_ready);
-            }else{
+            } else {
                 // notify next display to read
                 sem_post(sem_new_msg);
             }
@@ -119,21 +131,25 @@ int main(int argc, char** argv)
 
         printf("msg: '%s'\n",  line);
     }
-    
+
     //say bye --> increase num_of_displays
     sem_wait(sem_sync);
     --shm->num_of_displays;
     sem_post(sem_sync);
 
     printf("done...\n");
-    munmap(shm, sizeof(struct shared_msg));
-    close(fd);
-    sem_close(sem_sync);
+    if(munmap(shm,sizeof(struct shared_msg)) == -1) {
+        perror(SHAREDMEM_NAME);
+    }
     sem_close(sem_new_msg);
+    sem_close(sem_sync);
     sem_close(sem_ready);
+    sem_close(sem_all_finished);
     sem_unlink(SHM_SEM_SYNC);
-    sem_unlink(SHM_SEM_READY);
     sem_unlink(SHM_SEM_NEW_MSG);
+    sem_unlink(SHM_SEM_READY);
+    sem_unlink(SHM_SEM_ALL_FINISHED);
+    close(fd);
     shm_unlink(SHAREDMEM_NAME);
     return 0;
 }

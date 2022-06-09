@@ -38,7 +38,8 @@ int generate_pipe(char* pipe_name) {
 
     // open pipe
     printf("try to open pipe: %s\n",pipe_name);
-    int fd = open(pipe_name, O_WRONLY);
+    // READ/WRITE in order to avoid blocking on startup when display started in wrong order
+    int fd = open(pipe_name, O_RDWR);
     if(fd == -1) {
         perror(pipe_name);
         return 1;
