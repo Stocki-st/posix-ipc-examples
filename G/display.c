@@ -15,6 +15,8 @@ int main(int argc, char** argv)
     }
 
     char pipe_name[40] = {'\0'};// maximum pipe-name size 40
+
+    //evaluate if program should print uppercase or lowercase
     if(strcmp(argv[1],"lower") == 0) {
         strncpy ( pipe_name, PIPE_NAME_LOWER, sizeof(pipe_name));
     }  else if(strcmp(argv[1],"upper") == 0) {
@@ -23,6 +25,7 @@ int main(int argc, char** argv)
         fprintf(stderr, "Select display usage - possible arguments are: 'lower' or 'upper'\n");
         return 1;
     }
+
 
     char line[MAX_MSG_LEN];
     printf("try to open pipe: %s\n", pipe_name);
@@ -36,6 +39,7 @@ int main(int argc, char** argv)
     unsigned char length = 0;
 
     printf("pipe '%s' opened... waiting for messages...\n", pipe_name);
+    //read messages from respective pipe
     while ((rv = read(fd,&length, 1)) == 1) {
         rv = read(fd,&line, length);
 
